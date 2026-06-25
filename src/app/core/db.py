@@ -1,16 +1,44 @@
 import os
-from typing import Annotated
+from typing import Annotated, Generator
+
+from dotenv import load_dotenv
 from fastapi import Depends
-from sqlmodel import Session, create_engine
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL",
-    "postgresql://haritha@localhost:5432/keyhub_main_db",
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable is not set")
+
+Base = declarative_base()
+
+# Single engine + session factory for the whole process.
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,   # transparently recover from dropped connections
+    future=True,
 )
-engine = create_engine(DATABASE_URL, echo=False)
+SessionLocal = sessionmaker(
+    bind=engine,
+    autoflush=False,
+    autocommit=False,
+    expire_on_commit=False,
+    future=True,
+)
 
-def get_session():
-    with Session(engine) as session:
+def get_db() -> Generator[Session, None, None]:
+
+    session = SessionLocal()
+    try:
         yield session
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
-SessionDep = Annotated[Session, Depends(get_session)]
+
+# Inject with: def endpoint(session: SessionDep): ...
+SessionDep = Annotated[Session, Depends(get_db)]

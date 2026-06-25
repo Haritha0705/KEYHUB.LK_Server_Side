@@ -1,8 +1,10 @@
 import uuid
-from sqlmodel import Field
+
+from sqlalchemy import ForeignKey, UUID
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.app.models.common import BaseModel
 
 class VehicleSubBase(BaseModel):
 
-    vehicle_id: uuid.UUID = Field(foreign_key="vehicle.id", ondelete="CASCADE")
+    vehicle_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True),ForeignKey("vehicles.id", ondelete="CASCADE"),unique=True,nullable=False)

@@ -1,31 +1,17 @@
 import uuid
-from sqlmodel import SQLModel, Field
-from datetime import datetime, timezone
-from sqlmodel import DateTime, func
+from datetime import datetime
 from enum import StrEnum
-
-def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+from sqlalchemy import DateTime, func, UUID
+from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 
 class TimestampMixin:
 
-    created_at: datetime = Field(
-        default_factory=_utcnow,
-        sa_type=DateTime(timezone=True),
-        sa_column_kwargs={"server_default": func.now()},
-        nullable=False,
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),server_default=func.now(),onupdate=func.now(),nullable=False)
 
-    updated_at: datetime = Field(
-        default_factory=_utcnow,
-        sa_type=DateTime(timezone=True),
-        sa_column_kwargs={"server_default": func.now(), "onupdate": func.now()},
-        nullable=False,
-    )
+class BaseModel(DeclarativeBase, TimestampMixin):
 
-class BaseModel(SQLModel, TimestampMixin):
-
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
 # SHARED ENUMS
 

@@ -1,10 +1,8 @@
 from uuid import UUID
-from sqlmodel import SQLModel
+from pydantic import BaseModel
 
-class Base(SQLModel):
-
+class Base(BaseModel):
     pass
 
-class IDMixin(SQLModel):
-
+class IDMixin(BaseModel):
     id: UUID

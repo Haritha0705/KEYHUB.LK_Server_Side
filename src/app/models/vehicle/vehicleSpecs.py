@@ -1,9 +1,10 @@
 from typing import TYPE_CHECKING
-from sqlmodel import Field, Enum, String, JSON, Relationship
+from sqlalchemy import Integer, Enum, String
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.app.models.common import FuelType, Transmission
 from src.app.models.vehicle.base import VehicleSubBase
-
 if TYPE_CHECKING:
     from src.app.models.vehicle.vehicle import Vehicle
 
@@ -11,26 +12,19 @@ class VehicleSpecs(VehicleSubBase, table=True):
 
     __tablename__ = "vehicle_specs"
 
-    mileage: int | None = Field(default=None, index=True, nullable=True)
+    mileage: Mapped[int | None] = mapped_column(Integer, index=True)
+    engine_capacity_cc: Mapped[int | None] = mapped_column(Integer, index=True)
+    fuel_type: Mapped[FuelType | None] = mapped_column(Enum(FuelType, name="fuel_type"), index=True)
+    transmission: Mapped[Transmission | None] = mapped_column(Enum(Transmission, name="transmission"), index=True)
+    body_type: Mapped[str | None] = mapped_column(String(40), index=True)
+    color: Mapped[str | None] = mapped_column(String(30))
+    seating_capacity: Mapped[int | None] = mapped_column(Integer)
+    doors: Mapped[int | None] = mapped_column(Integer)
+    drivetrain: Mapped[str | None] = mapped_column(String(20))  # FWD / RWD / AWD / 4WD
 
-    engine_capacity_cc: int | None = Field(default=None, index=True, nullable=True)
-
-    fuel_type: FuelType | None = Field(default=None, sa_type=Enum(FuelType, name="fuel_type"), index=True, nullable=True)
-
-    transmission: Transmission | None = Field(default=None, sa_type=Enum(Transmission, name="transmission"), index=True, nullable=True)
-
-    body_type: str | None = Field(default=None, sa_type=String(40), index=True, nullable=True)
-
-    color: str | None = Field(default=None, sa_type=String(30), nullable=True)
-
-    seating_capacity: int | None = Field(default=None, nullable=True)
-
-    doors: int | None = Field(default=None, nullable=True)
-
-    drivetrain: str | None = Field(default=None, sa_type=String(20), nullable=True)
-
-    extra_specs: dict | None = Field(default=None, sa_type=JSON, nullable=True)
+    # Anything specific to a vehicle type lives here. Flexible, no migrations.
+    extra_specs: Mapped[dict | None] = mapped_column(JSONB, default=dict)
 
     # ONE-TO-ONE RELATIONSHIPS
 
-    vehicle: "Vehicle" = Relationship(back_populates="specs")
+    vehicle: Mapped[Vehicle] = relationship(back_populates="specs")

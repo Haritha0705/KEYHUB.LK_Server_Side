@@ -1,6 +1,5 @@
-import uuid
-from sqlmodel import Field, Column, Enum, String, Text, ForeignKey, Relationship
-from typing import Optional, List
+from sqlalchemy import Boolean, String, Enum, Text, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.app.models.vehicle.vehicleDocuments import VehicleDocuments
 from src.app.models.vehicle.vehicleHistory import VehicleHistory
@@ -11,47 +10,32 @@ from src.app.models.common import BaseModel, VehicleType, VehicleCondition, Vehi
 
 class Vehicle(BaseModel, table=True):
 
-    __tablename__ = "vehicle"
+    __tablename__ = "vehicles"
 
-    vehicle_type: VehicleType = Field(sa_column=Column(Enum(VehicleType, name="vehicle_type"), index=True))
-
-    title: str = Field(sa_type=String(150))
-
-    description: str | None = Field(default=None, sa_type=Text, nullable=True)
-
-    make: str | None = Field(default=None, sa_type=String(50), nullable=True, index=True)
-
-    model: str | None = Field(default=None, sa_type=String(50), nullable=True, index=True)
-
-    trim: str | None = Field(default=None, sa_type=String(50), nullable=True)
-
-    year_of_manufacture: int | None = Field(default=None, nullable=True, index=True)
-
-    condition: VehicleCondition = Field(sa_column=Column(Enum(VehicleCondition, name="vehicle_condition"), default=VehicleCondition.USED))
-
-    status: VehicleStatus = Field(sa_column=Column(Enum(VehicleStatus, name="vehicle_status"),default=VehicleStatus.DRAFT,index=True))
-
-    district: str | None = Field(default=None, sa_type=String(50), nullable=True, index=True)
-
-    city: str | None = Field(default=None, sa_type=String(50), nullable=True, index=True)
-
-    is_featured: bool = Field(default=False)
-
-    is_verified: bool = Field(default=False)
+    vehicle_type: Mapped[VehicleType] = mapped_column(Enum(VehicleType, name="vehicle_type"), nullable=False, index=True)
+    title: Mapped[str] = mapped_column(String(150), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text)
+    make: Mapped[str | None] = mapped_column(String(50), index=True)
+    model: Mapped[str | None] = mapped_column(String(50), index=True)
+    trim: Mapped[str | None] = mapped_column(String(50))
+    year_of_manufacture: Mapped[int | None] = mapped_column(Integer, index=True)
+    condition: Mapped[VehicleCondition] = mapped_column(Enum(VehicleCondition, name="vehicle_condition"),default=VehicleCondition.USED)
+    status: Mapped[VehicleStatus] = mapped_column(Enum(VehicleStatus, name="vehicle_status"),default=VehicleStatus.DRAFT,index=True)
+    district: Mapped[str | None] = mapped_column(String(50), index=True)
+    city: Mapped[str | None] = mapped_column(String(50), index=True)
+    is_featured: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # ONE-TO-ONE RELATIONSHIPS
 
-    specs: Optional["VehicleSpecs"] = Relationship(back_populates="vehicle")
-
-    documents: Optional["VehicleDocuments"] = Relationship(back_populates="vehicle")
-
-    pricing: Optional["VehiclePricing"] = Relationship(back_populates="vehicle")
-
-    history: Optional["VehicleHistory"] = Relationship(back_populates="vehicle")
+    specs: Mapped[VehicleSpecs] = relationship(back_populates="vehicle",uselist=False,cascade="all, delete-orphan")
+    documents: Mapped[VehicleDocuments] = relationship(back_populates="vehicle",uselist=False,cascade="all, delete-orphan")
+    pricing: Mapped[VehiclePricing] = relationship(back_populates="vehicle",uselist=False,cascade="all, delete-orphan")
+    history: Mapped[VehicleHistory] = relationship(back_populates="vehicle",uselist=False,cascade="all, delete-orphan")
 
     # ONE-TO-MANY RELATIONSHIP
 
-    media: List["VehicleMedia"] = Relationship(back_populates="vehicle", sa_relationship_kwargs={"order_by": "VehicleMedia.position"})
+    media: Mapped[list[VehicleMedia]] = relationship(back_populates="vehicle",cascade="all, delete-orphan",order_by="VehicleMedia.position")
 
     # Index
 
