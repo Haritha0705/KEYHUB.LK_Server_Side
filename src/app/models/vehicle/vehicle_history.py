@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 from sqlalchemy import Integer, Boolean, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -6,7 +8,7 @@ from src.app.models.vehicle.base import VehicleSubBase
 if TYPE_CHECKING:
     from src.app.models.vehicle.vehicle import Vehicle
 
-class VehicleHistory(VehicleSubBase, table=True):
+class VehicleHistory(VehicleSubBase):
 
     __tablename__ = "vehicle_history"
 

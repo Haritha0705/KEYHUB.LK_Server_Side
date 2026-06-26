@@ -1,9 +1,8 @@
 import logging
 
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy.orm import Session
-
-from app.core.errors import APIError
+from sqlalchemy.ext.asyncio import AsyncSession
+from src.app.core.errors import APIError
 from src.app.mapper.vehicle_mapper import VehicleMapper
 from src.app.repository.vehicle_repository import VehicleRepository
 from src.app.schemas.vehicle.vehicle import VehicleRequest, VehicleResponse
@@ -12,27 +11,31 @@ logger = logging.getLogger(__name__)
 
 class VehicleService:
 
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
         self.repo = VehicleRepository(session)
 
-    def create_vehicle(self, data: VehicleRequest) -> VehicleResponse:
+    async def create_vehicle(self, data: VehicleRequest) -> VehicleResponse:
         try:
             vehicle = VehicleMapper.to_model(data)
-            saved = self.repo.create(vehicle)
+            saved = await self.repo.create(vehicle)
 
-            self.session.commit()
-            self.session.refresh(saved)
+            await self.session.commit()
+
+            loaded = await self.repo.get_by_id(saved.id)
+
+            if loaded is None:
+                raise APIError(code=404, message="Vehicle not found after creation")
 
             logger.info("Vehicle created id=%s", saved.id)
-            return VehicleMapper.to_response(saved)
+            return VehicleMapper.to_response(loaded)
 
         except APIError:
-            self.session.rollback()
+            await self.session.rollback()
             raise
 
         except IntegrityError as e:
-            self.session.rollback()
+            await self.session.rollback()
             logger.warning("Integrity error creating vehicle: %s", e)
             raise APIError(
                 code=409,
@@ -40,11 +43,11 @@ class VehicleService:
             )
 
         except SQLAlchemyError as e:
-            self.session.rollback()
+            await self.session.rollback()
             logger.exception("Database error creating vehicle")
             raise APIError(code=400, message=f"Error adding vehicle: {e.__class__.__name__}")
 
         except Exception:
-            self.session.rollback()
+            await self.session.rollback()
             logger.exception("Unexpected error creating vehicle")
             raise APIError(code=500, message="Internal server error")

@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 
 from src.app.core.db import SessionDep
@@ -6,12 +8,10 @@ from src.app.services.vehicle_services import VehicleService
 
 vehicle_router = APIRouter(prefix="/vehicles", tags=["vehicles"])
 
-
 def get_vehicle_service(session: SessionDep) -> VehicleService:
-    """Provide a request-scoped VehicleService bound to the request session."""
     return VehicleService(session)
 
-ServiceDep = Depends(get_vehicle_service)
+ServiceDep = Annotated[VehicleService, Depends(get_vehicle_service)]
 
 @vehicle_router.post(
     "/",
@@ -23,8 +23,8 @@ ServiceDep = Depends(get_vehicle_service)
     },
     summary="Create a vehicle",
 )
-def create_vehicle(
+async def create_vehicle(
     payload: VehicleRequest,
-    service: VehicleService = ServiceDep,
+    service: ServiceDep,
 ) -> VehicleResponse:
-    return service.create_vehicle(payload)
+    return await service.create_vehicle(payload)

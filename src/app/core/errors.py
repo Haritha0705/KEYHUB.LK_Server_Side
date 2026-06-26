@@ -5,9 +5,7 @@ from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 
-
 class APIError(Exception):
-    """Application-level error carrying an HTTP status code and a message."""
 
     def __init__(self, code: int, message: str, error: dict | None = None):
         super().__init__(message)
@@ -21,12 +19,11 @@ class APIError(Exception):
 
 
 class DBError(APIError):
-    """Raised for database-layer failures."""
+
     pass
 
 
 def register_exception_handlers(app: FastAPI) -> None:
-    """Register app-wide exception handlers so routers stay free of try/except."""
 
     @app.exception_handler(APIError)
     async def handle_api_error(_: Request, exc: APIError) -> JSONResponse:

@@ -7,7 +7,6 @@ app = FastAPI()
 
 register_exception_handlers(app)
 
-
 @app.get("/")
 def read_root():
     return {"Status": "ok"}

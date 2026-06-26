@@ -1,44 +1,41 @@
 import os
-from typing import Annotated, Generator
-
+from typing import Annotated, AsyncGenerator
 from dotenv import load_dotenv
 from fastapi import Depends
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
-load_dotenv()
+_APP_ENV = os.getenv("APP_ENV", "dev")
+if not load_dotenv(f".env.{_APP_ENV}", override=True):
+    load_dotenv(override=True)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL environment variable is not set")
 
-Base = declarative_base()
-
-# Single engine + session factory for the whole process.
-engine = create_engine(
+engine = create_async_engine(
     DATABASE_URL,
-    pool_pre_ping=True,   # transparently recover from dropped connections
+    pool_pre_ping=True,
     future=True,
 )
-SessionLocal = sessionmaker(
+SessionLocal = async_sessionmaker(
     bind=engine,
     autoflush=False,
-    autocommit=False,
     expire_on_commit=False,
-    future=True,
+    class_=AsyncSession,
 )
 
-def get_db() -> Generator[Session, None, None]:
-
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     session = SessionLocal()
     try:
         yield session
     except Exception:
-        session.rollback()
+        await session.rollback()
         raise
     finally:
-        session.close()
+        await session.close()
 
-
-# Inject with: def endpoint(session: SessionDep): ...
-SessionDep = Annotated[Session, Depends(get_db)]
+SessionDep = Annotated[AsyncSession, Depends(get_db)]

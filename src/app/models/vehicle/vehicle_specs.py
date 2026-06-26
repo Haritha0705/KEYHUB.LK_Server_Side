@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 from sqlalchemy import Integer, Enum, String
 from sqlalchemy.dialects.postgresql import JSONB
@@ -8,7 +10,7 @@ from src.app.models.vehicle.base import VehicleSubBase
 if TYPE_CHECKING:
     from src.app.models.vehicle.vehicle import Vehicle
 
-class VehicleSpecs(VehicleSubBase, table=True):
+class VehicleSpecs(VehicleSubBase):
 
     __tablename__ = "vehicle_specs"
 

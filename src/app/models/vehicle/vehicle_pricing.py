@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
@@ -7,7 +9,7 @@ from src.app.models.vehicle.base import VehicleSubBase
 if TYPE_CHECKING:
     from src.app.models.vehicle.vehicle import Vehicle
 
-class VehiclePricing(VehicleSubBase, table=True):
+class VehiclePricing(VehicleSubBase):
 
     __tablename__ = "vehicle_pricing"
 

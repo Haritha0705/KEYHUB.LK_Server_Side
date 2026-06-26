@@ -1,14 +1,14 @@
 from sqlalchemy import Boolean, String, Enum, Text, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.app.models.vehicle.vehicleDocuments import VehicleDocuments
-from src.app.models.vehicle.vehicleHistory import VehicleHistory
-from src.app.models.vehicle.vehicleMedia import VehicleMedia
-from src.app.models.vehicle.vehiclePricing import VehiclePricing
-from src.app.models.vehicle.vehicleSpecs import VehicleSpecs
+from src.app.models.vehicle.vehicle_documents import VehicleDocuments
+from src.app.models.vehicle.vehicle_history import VehicleHistory
+from src.app.models.vehicle.vehicle_media import VehicleMedia
+from src.app.models.vehicle.vehicle_pricing import VehiclePricing
+from src.app.models.vehicle.vehicle_specs import VehicleSpecs
 from src.app.models.common import BaseModel, VehicleType, VehicleCondition, VehicleStatus
 
-class Vehicle(BaseModel, table=True):
+class Vehicle(BaseModel):
 
     __tablename__ = "vehicles"
 

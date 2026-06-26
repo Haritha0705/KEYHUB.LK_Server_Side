@@ -3,7 +3,6 @@ from datetime import date
 from src.app.schemas.base import Base, IDMixin
 
 class VehicleDocumentsBase(Base):
-
     registration_number: str | None = None
     chassis_number: str | None = None
     engine_number: str | None = None

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import date
 from typing import TYPE_CHECKING
 
@@ -9,7 +11,7 @@ from src.app.models.vehicle.base import VehicleSubBase
 if TYPE_CHECKING:
     from src.app.models.vehicle.vehicle import Vehicle
 
-class VehicleDocuments(VehicleSubBase, table=True):
+class VehicleDocuments(VehicleSubBase):
 
     __tablename__ = "vehicle_documents"
 
